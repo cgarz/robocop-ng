@@ -257,8 +257,8 @@ class Logs(Cog):
             "🗑️ **Message delete**: \n"
             f"from {self.bot.escape_message(message.author.name)} "
             f"({message.author.id}), in {message.channel.mention}:\n"
-            f"`{message.clean_content}`"
         )
+        msg += f"`{message.system_content}`" if message.type == discord.MessageType.new_member else f"`{message.clean_content}`"
 
         # If resulting message is too long, upload to hastebin
         if len(msg) > 2000:
