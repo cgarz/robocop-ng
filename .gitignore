@@ -102,3 +102,6 @@ config.py
 
 # Prevent data files from being committed
 data/
+
+# Prevent token leak
+BOT_TOKEN.txt
