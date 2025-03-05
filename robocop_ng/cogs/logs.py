@@ -346,7 +346,7 @@ class Logs(Cog):
                 msg += "\n:crown: __Role change__: "
                 roles = []
                 for role in role_removal:
-                    roles.append("_~~" + role.name + "~~_")
+                    roles.append("__~~" + role.name + "~~__")
                 for role in role_addition:
                     roles.append("__**" + role.name + "**__")
                 for index, role in enumerate(member_after.roles):
