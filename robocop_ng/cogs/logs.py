@@ -99,12 +99,12 @@ class Logs(Cog):
             await member.kick(reason="Too new")
 
             msg = (
-                f"🚨 **Account too new**: {member.mention} | "
+                f":rotating_light: **Account too new**: {member.mention} | "
                 f"{escaped_name}\n"
-                f"🗓 __Creation__: {member.created_at}\n"
-                f"🕓 Account age: {age}\n"
-                f"✉ Joined with: {invite_used}\n"
-                f"🏷 __User ID__: {member.id}"
+                f":calendar_spiral: __Creation__: {member.created_at}\n"
+                f":clock4: Account age: {age}\n"
+                f":envelope: Joined with: {invite_used}\n"
+                f":label: __User ID__: {member.id}"
             )
             if not sent:
                 msg += (
@@ -114,12 +114,12 @@ class Logs(Cog):
             await log_channel.send(msg)
             return
         msg = (
-            f"✅ **Join**: {member.mention} | "
+            f":white_check_mark: **Join**: {member.mention} | "
             f"{escaped_name}\n"
-            f"🗓 __Creation__: {member.created_at}\n"
-            f"🕓 Account age: {age}\n"
-            f"✉ Joined with: {invite_used}\n"
-            f"🏷 __User ID__: {member.id}"
+            f":calendar_spiral: __Creation__: {member.created_at}\n"
+            f":clock4: Account age: {age}\n"
+            f":envelope: Joined with: {invite_used}\n"
+            f":label: __User ID__: {member.id}"
         )
 
         # Handles user restrictions
@@ -159,7 +159,7 @@ class Logs(Cog):
         alert = False
         cleancont = self.clean_re.sub("", message.content).lower()
         msg = (
-            f"🚨 Suspicious message by {message.author.mention} "
+            f":rotating_light: Suspicious message by {message.author.mention} "
             f"({message.author.id}):"
         )
 
@@ -233,16 +233,16 @@ class Logs(Cog):
         log_channel = self.bot.get_channel(config.log_channel)
 
         msg = (
-            "📝 **Message edit**: \n"
+            ":pencil: **Message edit**: \n"
             f"from {self.bot.escape_message(after.author.name)} "
             f"({after.author.id}), in {after.channel.mention}:\n"
-            f"```{before_content}``` → ```{after_content}```"
+            f"```{before_content}``` \N{RIGHTWARDS ARROW} ```{after_content}```"  # U+2192
         )
 
         # If resulting message is too long, upload to hastebin
         if len(msg) > 2000:
             haste_url = await self.bot.haste(msg)
-            msg = f"📝 **Message edit**: \nToo long: <{haste_url}>"
+            msg = f":pencil: **Message edit**: \nToo long: <{haste_url}>"
 
         await log_channel.send(msg)
 
@@ -254,7 +254,7 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
-            "🗑️ **Message delete**: \n"
+            ":wastebasket: **Message delete**: \n"
             f"from {self.bot.escape_message(message.author.name)} "
             f"({message.author.id}), in {message.channel.mention}:\n"
         )
@@ -263,7 +263,7 @@ class Logs(Cog):
         # If resulting message is too long, upload to hastebin
         if len(msg) > 2000:
             haste_url = await self.bot.haste(msg)
-            msg = f"🗑️ **Message delete**: \nToo long: <{haste_url}>"
+            msg = f":wastebasket: **Message delete**: \nToo long: <{haste_url}>"
 
         await log_channel.send(msg)
 
@@ -276,9 +276,9 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
-            f"⬅️ **Leave**: {member.mention} | "
+            f":arrow_left: **Leave**: {member.mention} | "
             f"{self.bot.escape_message(member)}\n"
-            f"🏷 __User ID__: {member.id}"
+            f":label: __User ID__: {member.id}"
         )
         await log_channel.send(msg)
 
@@ -291,9 +291,9 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f"⛔ **Ban**: {member.mention} | "
+            f":no_entry: **Ban**: {member.mention} | "
             f"{self.bot.escape_message(member)}\n"
-            f"🏷 __User ID__: {member.id}"
+            f":label: __User ID__: {member.id}"
         )
         await log_channel.send(msg)
 
@@ -306,9 +306,9 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f"⚠️ **Unban**: {user.mention} | "
+            f":warning: **Unban**: {user.mention} | "
             f"{self.bot.escape_message(user)}\n"
-            f"🏷 __User ID__: {user.id}"
+            f":label: __User ID__: {user.id}"
         )
         # if user.id in self.bot.timebans:
         #     msg += "\nTimeban removed."
@@ -343,7 +343,7 @@ class Logs(Cog):
                     role_addition.append(role)
 
             if len(role_addition) != 0 or len(role_removal) != 0:
-                msg += "\n👑 __Role change__: "
+                msg += "\n:crown: __Role change__: "
                 roles = []
                 for role in role_removal:
                     roles.append("_~~" + role.name + "~~_")
@@ -358,24 +358,24 @@ class Logs(Cog):
 
         if member_before.name != member_after.name:
             msg += (
-                "\n📝 __Username change__: "
-                f"{self.bot.escape_message(member_before)} → "
+                "\n:pencil: __Username change__: "
+                f"{self.bot.escape_message(member_before)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after)}"
             )
         if member_before.nick != member_after.nick:
             if not member_before.nick:
-                msg += "\n🏷 __Nickname addition__"
+                msg += "\n:label: __Nickname addition__"
             elif not member_after.nick:
-                msg += "\n🏷 __Nickname removal__"
+                msg += "\n:label: __Nickname removal__"
             else:
-                msg += "\n🏷 __Nickname change__"
+                msg += "\n:label: __Nickname change__"
             msg += (
-                f": {self.bot.escape_message(member_before.nick)} → "
+                f": {self.bot.escape_message(member_before.nick)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after.nick)}"
             )
         if msg:
             msg = (
-                f"ℹ️ **Member update**: {member_after.mention} | "
+                f":information_source: **Member update**: {member_after.mention} | "
                 f"{self.bot.escape_message(member_after)}{msg}"
             )
             await log_channel.send(msg)
