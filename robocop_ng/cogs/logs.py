@@ -84,42 +84,34 @@ class Logs(Cog):
             invite_used = "One of: "
             invite_used += ", ".join([x["code"] for x in probable_invites_used])
 
-        # Check if user account is older than 15 minutes
-        age = member.joined_at - member.created_at
-        if age < config.min_age:
+        formatted_created_at = member.created_at.strftime('%Y/%m/%d %H:%M:%S.%f')[:-3] + ' UTC'
+        account_age = member.joined_at - member.created_at
+        if account_age < config.min_age:
             try:
-                await member.send(
-                    f"Your account is too new to "
-                    f"join {member.guild.name}."
-                    " Please try again later."
-                )
+                await member.send(f"Your account is too new to join {member.guild.name}. Please try again later.")
                 sent = True
             except discord.errors.Forbidden:
                 sent = False
             await member.kick(reason="Too new")
 
             msg = (
-                f":rotating_light: **Account too new**: {member.mention} | "
-                f"{escaped_name}\n"
-                f":calendar_spiral: __Creation__: {member.created_at}\n"
-                f":clock4: Account age: {age}\n"
-                f":envelope: Joined with: {invite_used}\n"
-                f":label: __User ID__: {member.id}"
+                f":rotating_light: __**`Account too new:`**__  {member.mention} | {escaped_name}\n"
+                f":calendar_spiral: `Creation.......:`  {formatted_created_at}\n"
+                f":clock4: `Account age....:`  {account_age}\n"
+                f":envelope: `Joined with....:`  {invite_used}\n"
+                f":label: `User ID........:`  {member.id}"
             )
             if not sent:
-                msg += (
-                    "\nThe user has disabled direct messages, "
-                    "so the reason was not sent."
-                )
-            await log_channel.send(msg)
+                msg += "\n\n:warn: The user has disabled direct messages, so the reason was not sent."
+            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
             return
+
         msg = (
-            f":white_check_mark: **Join**: {member.mention} | "
-            f"{escaped_name}\n"
-            f":calendar_spiral: __Creation__: {member.created_at}\n"
-            f":clock4: Account age: {age}\n"
-            f":envelope: Joined with: {invite_used}\n"
-            f":label: __User ID__: {member.id}"
+            f":white_check_mark: __**`Join.......:`**__  {member.mention} | {escaped_name}\n"
+            f":calendar_spiral: `Creation...:`  {formatted_created_at}\n"
+            f":clock4: `Account age:`  {account_age}\n"
+            f":envelope: `Joined with:`  {invite_used}\n"
+            f":label: `User ID....:`  {member.id}"
         )
 
         # Handles user restrictions
@@ -133,7 +125,7 @@ class Logs(Cog):
             warns = json.load(f)
         try:
             if len(warns[str(member.id)]["warns"]) == 0:
-                await log_channel.send(msg)
+                await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
             else:
                 embed = discord.Embed(
                     color=discord.Color.dark_red(), title=f"Warns for {escaped_name}"
@@ -147,7 +139,7 @@ class Logs(Cog):
                     )
                 await log_channel.send(msg, embed=embed)
         except KeyError:  # if the user is not in the file
-            await log_channel.send(msg)
+            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
 
     async def do_spy(self, message):
         if message.author.bot:
@@ -276,11 +268,10 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
-            f":arrow_left: **Leave**: {member.mention} | "
-            f"{self.bot.escape_message(member)}\n"
-            f":label: __User ID__: {member.id}"
+            f":arrow_left: __**`Leave..:`**__  {member.mention} | {self.bot.escape_message(member)}\n"
+            f":label: `User ID:`  {member.id}"
         )
-        await log_channel.send(msg)
+        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.light_gray()))
 
     @Cog.listener()
     async def on_member_ban(self, guild, member):
@@ -291,11 +282,10 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f":no_entry: **Ban**: {member.mention} | "
-            f"{self.bot.escape_message(member)}\n"
-            f":label: __User ID__: {member.id}"
+            f":no_entry: __**`Ban....:`**__ {member.mention} | {self.bot.escape_message(member)}\n"
+            f":label: `User ID:` {member.id}"
         )
-        await log_channel.send(msg)
+        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.red()))
 
     @Cog.listener()
     async def on_member_unban(self, guild, user):
@@ -306,9 +296,8 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f":warning: **Unban**: {user.mention} | "
-            f"{self.bot.escape_message(user)}\n"
-            f":label: __User ID__: {user.id}"
+            f":warning: __**`Unban..:`**__  {user.mention} | {self.bot.escape_message(user)}\n"
+            f":label: `User ID:`  {user.id}"
         )
         # if user.id in self.bot.timebans:
         #     msg += "\nTimeban removed."
@@ -319,7 +308,7 @@ class Logs(Cog):
         #         timebans.pop(user.id)
         #         with open("data/timebans.json", "w") as f:
         #             json.dump(timebans, f)
-        await log_channel.send(msg)
+        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.yellow()))
 
     @Cog.listener()
     async def on_member_update(self, member_before, member_after):
@@ -343,7 +332,7 @@ class Logs(Cog):
                     role_addition.append(role)
 
             if len(role_addition) != 0 or len(role_removal) != 0:
-                msg += "\n:crown: __Role change__: "
+                msg += "\n:crown: __**`Role change......:`**__ "
                 roles = []
                 for role in role_removal:
                     roles.append("__~~" + role.name + "~~__")
@@ -358,27 +347,27 @@ class Logs(Cog):
 
         if member_before.name != member_after.name:
             msg += (
-                "\n:pencil: __Username change__: "
+                "\n:pencil: __**`Username change..:`**__ "
                 f"{self.bot.escape_message(member_before)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after)}"
             )
         if member_before.nick != member_after.nick:
             if not member_before.nick:
-                msg += "\n:label: __Nickname addition__"
+                msg += "\n:label: __**`Nickname addition:`**__ "
             elif not member_after.nick:
-                msg += "\n:label: __Nickname removal__"
+                msg += "\n:label: __**`Nickname removal.:`**__ "
             else:
-                msg += "\n:label: __Nickname change__"
+                msg += "\n:label: __**`Nickname change..:`**__ "
             msg += (
-                f": {self.bot.escape_message(member_before.nick)} \N{RIGHTWARDS ARROW} "  # U+2192
+                f"{self.bot.escape_message(member_before.nick)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after.nick)}"
             )
         if msg:
             msg = (
-                f":information_source: **Member update**: {member_after.mention} | "
+                f":information_source: __**`Member update....:`**__ {member_after.mention} | "
                 f"{self.bot.escape_message(member_after)}{msg}"
             )
-            await log_channel.send(msg)
+            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.blue()))
 
 
 async def setup(bot):
