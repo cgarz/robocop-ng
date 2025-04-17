@@ -98,7 +98,6 @@ files/*
 *.ttf
 
 priv-*
-config.py
 
 # Prevent data files from being committed
 data/
