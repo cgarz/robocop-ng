@@ -160,12 +160,11 @@ github_oauth_token = ""
 allowed_pin_channels = []
 allowed_pin_roles = []
 
-# Channel to upload text files while editing list items. (They are cleaned up.)
-list_files_channel = 0
-
 # == Only if you want to use cogs.lists ==
 # Channels that are lists that are controlled by the lists cog.
 list_channels = []
+# Channel to upload text files while editing list items. (They are cleaned up.)
+list_files_channel = 0
 
 # == Only if you want to use cogs.sar ==
 self_assignable_roles = {}
