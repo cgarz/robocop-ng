@@ -13,6 +13,23 @@ class NkitMeme(Cog):
     Meme commands.
     """
 
+    memebercount_replies = (
+        "There's like, uhhhhh a bunch.",
+        "More than 1, less than max member count.",
+        "HALP! I FORGOT HOW TO COUNT :scream:",
+        "ERROR: you do not have permissions to run this command, because I don't like you.",
+        "Ask yo mamma.",
+        "Ask me later, I'm chatting up a sexy chatbot atm.",
+        "How many times are you going to run this command? What do you hope to find?",
+        "Count them yourself, lazy bitch.",
+        "42",
+        "666",
+        "-π",
+        "In soviet russia, members count YOU!",
+        "How ever many members it takes to screw in a light bulb.",
+        "There are too many! Make them go away!"
+    )
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -116,7 +133,7 @@ class NkitMeme(Cog):
     @commands.command(hidden=True)
     async def memebercount(self, ctx):
         """Checks memeber count, as requested by dvdfreitag"""
-        await ctx.send("There's like, uhhhhh a bunch")
+        await ctx.send(self.memebercount_replies[random.randint(0, len(self.memebercount_replies)-1)])
 
     @commands.command(hidden=True)
     async def frolics(self, ctx):
