@@ -27,7 +27,8 @@ class NkitMeme(Cog):
         "-π",
         "In soviet russia, members count YOU!",
         "How ever many members it takes to screw in a light bulb.",
-        "There are too many! Make them go away!"
+        "There are too many! Make them go away!",
+        "https://media.discordapp.net/attachments/755367578381058178/1371303794931142746/memebercount.gif"
     )
 
     def __init__(self, bot):

@@ -29,6 +29,8 @@ general_channels = [
     1300295288870928416, # general
 ]
 
+spy_channels = general_channels
+
 enroll_reaction_emoji_id = None
 enroll_reaction_emoji_name = '\N{THUMBS UP SIGN}'  # '👍'
 enroll_reaction_message_id = 1345936191568220170
