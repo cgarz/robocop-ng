@@ -23,6 +23,7 @@ botlog_channel = 1300295067596095498
 modlog_channel = 1300295108813656114
 spylog_channel = 1300295141323575346
 welcome_channel = 1300295206641598474
+image_archive_channel = 1441143424597102652
 
 general_channels = [
     welcome_channel,

@@ -167,6 +167,16 @@ class Logs(Cog):
                 msg += f"\n- Contains suspicious word: `{susp_word}`"
                 alert = True
 
+        image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
+        if image_attachments:
+            image_archive_channel = self.bot.get_channel(config.image_archive_channel)
+            for attachment in image_attachments:
+                await image_archive_channel.send(
+                    file=await attachment.to_file(use_cached=True),
+                    content=f'Image from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
+                            f'Posted in: {message.jump_url}',
+                    allowed_mentions=discord.AllowedMentions(users=False))
+
         if alert:
             msg += f"\n\nJump: <{message.jump_url}>"
             spy_channel = self.bot.get_channel(config.spylog_channel)

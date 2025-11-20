@@ -88,6 +88,7 @@ botlog_channel = 981843909565116426
 modlog_channel = 981843937050378270
 spylog_channel = 981844126033150022
 welcome_channel = 981694878092243064
+image_archive_channel = 1441174621792632935
 
 # These channel entries are used to determine which roles will be given
 # access when we unmute on them
