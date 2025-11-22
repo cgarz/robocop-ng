@@ -1,3 +1,4 @@
+import asyncio
 import re
 from discord.ext.commands import Cog
 from discord.utils import remove_markdown
@@ -42,6 +43,8 @@ class CryptoScamBlock(Cog):
 
         if len(image_links) == 4 and msg_has_no_content:
             log_channel = self.bot.get_channel(config.log_channel)
+            if message.attachments:
+                await asyncio.sleep(5)  # give log cog enough time to archive 4 images
             await log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
             await message.delete()
 
