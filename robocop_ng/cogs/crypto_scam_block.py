@@ -6,7 +6,7 @@ from helpers.checks import check_if_staff
 
 class CryptoScamBlock(Cog):
     """
-    Handles image spam from crypto fannies. Matches when msg has exactly 4 images and no visible text content.
+    Handles image spam from crypto fannies. Matches when msg has exactly 4 images/links and no visible text content.
     """
 
     def __init__(self, bot):
@@ -25,7 +25,7 @@ class CryptoScamBlock(Cog):
             return  # ignore staff
 
         msg_has_no_content = False
-        image_links = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
+        image_links = [ia.url for ia in message.attachments if ia.content_type.startswith('image/')]
 
         if not message.content:
             msg_has_no_content = True
@@ -33,7 +33,7 @@ class CryptoScamBlock(Cog):
             stripped_content = message.content
             for url in self.url_extract_re.findall(message.content):
                 stripped_content = stripped_content.replace(url, '')
-                image_links.append(url)
+                image_links.append(url)  # Assumes link is an image, checking everything would be too slow/expensive.
 
             stripped_content = remove_markdown(stripped_content).strip()
             stripped_content = ''.join(c for c in stripped_content if c.isprintable())
