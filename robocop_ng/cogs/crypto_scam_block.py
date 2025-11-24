@@ -11,7 +11,7 @@ class CryptoScamBlock(Cog):
     """
 
     def __init__(self, bot):
-        self.url_extract_re = re.compile(r'(https?://\S+\.\S+/\S+)', re.IGNORECASE)
+        self.url_extract_re = re.compile(r'((\[[^]]*]\()?https?://\S+\.\S+/\S+)\)?', re.IGNORECASE)
         self.bot = bot
 
     @Cog.listener()
@@ -33,6 +33,8 @@ class CryptoScamBlock(Cog):
         else:
             stripped_content = message.content
             for url in self.url_extract_re.findall(message.content):
+                if isinstance(url, tuple):
+                    url = url[0]
                 stripped_content = stripped_content.replace(url, '')
                 image_links.append(url)  # Assumes link is an image, checking everything would be too slow/expensive.
 
