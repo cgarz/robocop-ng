@@ -175,9 +175,9 @@ class Logs(Cog):
         image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
         if image_attachments:
             files = [await attachment.to_file(use_cached=True) for attachment in image_attachments]
-            content = ('Image ' if len(files) == 1 else f'{len(files)} images '
-                       f'from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
-                       f'Posted in: {message.jump_url}')
+            content = 'Image ' if len(files) == 1 else f'{len(files)} images '
+            content += (f'from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
+                        f'Posted in: {message.jump_url}')
             await self.image_archive_channel.send(
                 files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
 
