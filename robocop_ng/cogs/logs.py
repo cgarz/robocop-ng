@@ -14,6 +14,7 @@ class Logs(Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.image_archive_channel = None
         self.invite_re = re.compile(
             r"((discord\.gg|discordapp\.com/" r"+invite)/+[a-zA-Z0-9-]+)", re.IGNORECASE
         )
@@ -24,6 +25,10 @@ class Logs(Cog):
             [r"\W*".join(list(word)) for word in config.suspect_words]
         )
         self.susp_hellgex = re.compile(susp_hellgex, re.IGNORECASE)
+
+    @Cog.listener()
+    async def on_ready(self):
+        self.image_archive_channel = self.bot.get_channel(config.image_archive_channel)
 
     @Cog.listener()
     async def on_member_join(self, member):
@@ -169,13 +174,12 @@ class Logs(Cog):
 
         image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
         if image_attachments:
-            image_archive_channel = self.bot.get_channel(config.image_archive_channel)
-            for attachment in image_attachments:
-                await image_archive_channel.send(
-                    file=await attachment.to_file(use_cached=True),
-                    content=f'Image from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
-                            f'Posted in: {message.jump_url}',
-                    allowed_mentions=discord.AllowedMentions(users=False))
+            files = [await attachment.to_file(use_cached=True) for attachment in image_attachments]
+            content = ('Image ' if len(files) == 1 else f'{len(files)} images '
+                       f'from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
+                       f'Posted in: {message.jump_url}')
+            await self.image_archive_channel.send(
+                files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
 
         if alert:
             msg += f"\n\nJump: <{message.jump_url}>"
