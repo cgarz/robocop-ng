@@ -9,10 +9,12 @@ class CryptoScamBlock(Cog):
     """
     Handles image spam from crypto fannies. Matches when msg has exactly 4 images/links and no visible text content.
     Also counts multiple messages together if posted in quick succession.
+    Everyone and here mentions are also not counted as visible text.
     """
 
     def __init__(self, bot):
         self.url_extract_re = re.compile(r'((\[[^]]*]\()?https?://\S+\.\S+/\S+)\)?', re.IGNORECASE)
+        self.replace_restricted_mentions_re = re.compile(r'@(everyone|here)', re.IGNORECASE)
         self.bot = bot
         self.recent_message_cache = {}  # {user.id: {channel.id: [(image_count, message)]} } (list is actually a set)
         self.log_channel = None
@@ -49,7 +51,7 @@ class CryptoScamBlock(Cog):
         if not message.content:
             msg_has_no_content = True
         else:
-            stripped_content = message.content
+            stripped_content = self.replace_restricted_mentions_re.sub(repl='', string=message.content)
             url_count = 0
             for url in self.url_extract_re.findall(message.content):
                 if isinstance(url, tuple):
@@ -57,8 +59,8 @@ class CryptoScamBlock(Cog):
                 stripped_content = stripped_content.replace(url, '')
                 url_count += 1
 
-            stripped_content = remove_markdown(stripped_content).strip()
-            stripped_content = ''.join(c for c in stripped_content if c.isprintable())
+            stripped_content = remove_markdown(stripped_content)
+            stripped_content = ''.join(c for c in stripped_content if c.isprintable()).strip()
             if not stripped_content:
                 image_count += url_count # Assumes link is an image, checking everything would be too slow/expensive.
                 msg_has_no_content = True
