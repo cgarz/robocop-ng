@@ -197,7 +197,7 @@ class Logs(Cog):
                 name=message.author.display_name, icon_url=message.author.display_avatar
             )
 
-            await spy_channel.send(msg, embed=embed)
+            await spy_channel.send(msg, embed=embed, allowed_mentions=discord.AllowedMentions(users=False))
 
     async def do_nickcheck(self, message):
         compliant = self.name_re.fullmatch(message.author.display_name)
@@ -209,7 +209,7 @@ class Logs(Cog):
         )
 
         spy_channel = self.bot.get_channel(config.spylog_channel)
-        await spy_channel.send(msg)
+        await spy_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
 
     @Cog.listener()
     async def on_message(self, message):
@@ -250,7 +250,7 @@ class Logs(Cog):
             haste_url = await self.bot.haste(msg)
             msg = f":pencil: **Message edit**: \nToo long: <{haste_url}>"
 
-        await log_channel.send(msg)
+        await log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
 
     @Cog.listener()
     async def on_message_delete(self, message):
@@ -271,7 +271,7 @@ class Logs(Cog):
             haste_url = await self.bot.haste(msg)
             msg = f":wastebasket: **Message delete**: \nToo long: <{haste_url}>"
 
-        await log_channel.send(msg)
+        await log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
 
     @Cog.listener()
     async def on_member_remove(self, member):
