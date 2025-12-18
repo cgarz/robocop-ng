@@ -90,6 +90,7 @@ class Logs(Cog):
             invite_used += ", ".join([x["code"] for x in probable_invites_used])
 
         formatted_created_at = member.created_at.strftime('%Y/%m/%d %H:%M:%S.%f')[:-3] + ' UTC'
+        relative_created_at = f'<t:{member.created_at.timestamp():.0f}:R>'
         account_age = member.joined_at - member.created_at
         if account_age < config.min_age:
             try:
@@ -101,10 +102,10 @@ class Logs(Cog):
 
             msg = (
                 f":rotating_light: __**`Account too new:`**__  {member.mention} | {escaped_name}\n"
-                f":calendar_spiral: `Creation.......:`  {formatted_created_at}\n"
-                f":clock4: `Account age....:`  {account_age}\n"
-                f":envelope: `Joined with....:`  {invite_used}\n"
-                f":label: `User ID........:`  {member.id}"
+                f":calendar_spiral: `Account created.:`  {relative_created_at} @ {formatted_created_at}\n"
+                f":clock4: `Account join age:`  {account_age}\n"
+                f":envelope: `Joined with.....:`  {invite_used}\n"
+                f":label: `User ID.........:`  {member.id}"
             )
             if not sent:
                 msg += "\n\n:warn: The user has disabled direct messages, so the reason was not sent."
@@ -112,11 +113,11 @@ class Logs(Cog):
             return
 
         msg = (
-            f":white_check_mark: __**`Join.......:`**__  {member.mention} | {escaped_name}\n"
-            f":calendar_spiral: `Creation...:`  {formatted_created_at}\n"
-            f":clock4: `Account age:`  {account_age}\n"
-            f":envelope: `Joined with:`  {invite_used}\n"
-            f":label: `User ID....:`  {member.id}"
+            f":white_check_mark: __**`Join............:`**__  {member.mention} | {escaped_name}\n"
+            f":calendar_spiral: `Account created.:`   {relative_created_at} @ {formatted_created_at}\n"
+            f":clock4: `Account join age:`  {account_age}\n"
+            f":envelope: `Joined with.....:`  {invite_used}\n"
+            f":label: `User ID.........:`  {member.id}"
         )
 
         # Handles user restrictions
@@ -156,8 +157,8 @@ class Logs(Cog):
         alert = False
         cleancont = self.clean_re.sub("", message.content).lower()
         msg = (
-            f":rotating_light: Suspicious message by {message.author.mention} "
-            f"({message.author.id}):"
+            f':rotating_light: Suspicious message by {message.author.mention} ({message.author.id}/{message.author.name}):\n'
+            f'Jump: {message.jump_url}\n'
         )
 
         invites = self.invite_re.findall(message.content)
@@ -240,8 +241,8 @@ class Logs(Cog):
 
         msg = (
             ":pencil: **Message edit**: \n"
-            f"from {self.bot.escape_message(after.author.name)} "
-            f"({after.author.id}), in {after.channel.mention}:\n"
+            f'From: {after.author.mention} ({after.author.id}/{after.author.name}), in {after.channel.mention}:\n'
+            f'Jump: {after.jump_url}\n'
             f"```{before_content}``` \N{RIGHTWARDS ARROW} ```{after_content}```"  # U+2192
         )
 
@@ -261,8 +262,8 @@ class Logs(Cog):
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
             ":wastebasket: **Message delete**: \n"
-            f"from {self.bot.escape_message(message.author.name)} "
-            f"({message.author.id}), in {message.channel.mention}:\n"
+            f'From: {message.author.mention} ({message.author.id}/{message.author.name}), in {message.channel.mention}:\n'
+            f'Jump: {message.jump_url}\n'
         )
         msg += f"`{message.system_content}`" if message.type == discord.MessageType.new_member else f"`{message.clean_content}`"
 
@@ -331,7 +332,7 @@ class Logs(Cog):
         if member_after.guild.id not in config.guild_whitelist:
             return
 
-        msg = ""
+        msg_parts_lines = []
         log_channel = self.bot.get_channel(config.log_channel)
         if member_before.roles != member_after.roles:
             # role removal
@@ -346,7 +347,7 @@ class Logs(Cog):
                     role_addition.append(role)
 
             if len(role_addition) != 0 or len(role_removal) != 0:
-                msg += "\n:crown: __**`Role change......:`**__ "
+                heading_prefix, heading_text, heading_suffix = ":crown: __**`",   'Role change',   ":`**__ "
                 roles = []
                 for role in role_removal:
                     roles.append("__~~" + role.name + "~~__")
@@ -357,29 +358,36 @@ class Logs(Cog):
                         continue
                     if role not in role_removal and role not in role_addition:
                         roles.append(role.name)
-                msg += ", ".join(roles)
+                msg_parts_lines.append((heading_prefix, heading_text, heading_suffix, ", ".join(roles)))
 
         if member_before.name != member_after.name:
-            msg += (
-                "\n:pencil: __**`Username change..:`**__ "
+            heading_prefix, heading_text, heading_suffix = ":pencil: __**`",   'Username change',   ":`**__ "
+            msg_parts_lines.append((heading_prefix, heading_text, heading_suffix, (
                 f"{self.bot.escape_message(member_before)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after)}"
-            )
+            )))
+
         if member_before.nick != member_after.nick:
+            heading_prefix, heading_suffix = ":label: __**`",   ":`**__ "
             if not member_before.nick:
-                msg += "\n:label: __**`Nickname addition:`**__ "
+                heading_text = 'Nickname addition'
             elif not member_after.nick:
-                msg += "\n:label: __**`Nickname removal.:`**__ "
+                heading_text = 'Nickname removal'
             else:
-                msg += "\n:label: __**`Nickname change..:`**__ "
-            msg += (
+                heading_text = 'Nickname change'
+            msg_parts_lines.append((heading_prefix, heading_text, heading_suffix, (
                 f"{self.bot.escape_message(member_before.nick)} \N{RIGHTWARDS ARROW} "  # U+2192
                 f"{self.bot.escape_message(member_after.nick)}"
-            )
-        if msg:
-            msg = (
-                f":information_source: __**`Member update....:`**__ {member_after.mention} | "
-                f"{self.bot.escape_message(member_after)}{msg}"
+            )))
+
+        if msg_parts_lines:
+            msg_parts_lines.insert(0, (":information_source: __**`",   "Member update",   ":`**__ ",
+                                    f"{member_after.mention} | {self.bot.escape_message(member_after)}"))
+            heading_text_min_width = max(len(heading_text) for _, heading_text, _, _ in msg_parts_lines)
+
+            msg = '\n'.join(
+                f'{heading_prefix}{heading_text:.<{heading_text_min_width}}{heading_suffix}{data}'
+                for heading_prefix, heading_text, heading_suffix, data in msg_parts_lines
             )
             await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.blue()))
 
