@@ -39,12 +39,12 @@ class Common(Cog):
         include_from=False,
         include_to=False,
     ):
-        # Setting default value to utcnow() makes it show time from cog load
+        # Setting default value to now(UTC) makes it show time from cog load
         # which is not what we want
         if not time_from:
-            time_from = datetime.datetime.utcnow()
+            time_from = datetime.datetime.now(datetime.UTC)
         if not time_to:
-            time_to = datetime.datetime.utcnow()
+            time_to = datetime.datetime.now(datetime.UTC)
         if humanized:
             humanized_string = humanize.naturaltime(time_from - time_to)
             if include_from and include_to:
@@ -64,7 +64,7 @@ class Common(Cog):
                 return str_with_to
             return humanized_string
         else:
-            epoch = datetime.datetime.utcfromtimestamp(0)
+            epoch = datetime.datetime.fromtimestamp(0, datetime.UTC)
             epoch_from = (time_from - epoch).total_seconds()
             epoch_to = (time_to - epoch).total_seconds()
             second_diff = epoch_to - epoch_from

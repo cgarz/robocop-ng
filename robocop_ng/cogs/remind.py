@@ -1,7 +1,7 @@
 import discord
 import asyncio
 import time
-from datetime import datetime
+from datetime import datetime, UTC
 from discord.ext import commands
 from discord.ext.commands import Cog
 from helpers.robocronp import add_job, get_crontab
@@ -22,7 +22,7 @@ class Remind(Cog):
             if uid not in ctab["remind"][jobtimestamp]:
                 continue
             job_details = ctab["remind"][jobtimestamp][uid]
-            expiry_timestr = datetime.utcfromtimestamp(int(jobtimestamp)).strftime(
+            expiry_timestr = datetime.fromtimestamp(int(jobtimestamp), UTC).strftime(
                 "%Y-%m-%d %H:%M:%S (UTC)"
             )
             embed.add_field(
@@ -50,13 +50,13 @@ class Remind(Cog):
             await msg.delete()
             return
 
-        expiry_datetime = datetime.utcfromtimestamp(expiry_timestamp)
+        expiry_datetime = datetime.fromtimestamp(expiry_timestamp, UTC)
         duration_text = self.bot.get_relative_timestamp(
             time_to=expiry_datetime, include_to=True, humanized=True
         )
 
         safe_text = await commands.clean_content().convert(ctx, str(text))
-        added_on = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S (UTC)")
+        added_on = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S (UTC)")
 
         add_job(
             "remind",

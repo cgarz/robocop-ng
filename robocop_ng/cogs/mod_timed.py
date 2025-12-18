@@ -1,6 +1,6 @@
 import discord
 import config
-from datetime import datetime
+from datetime import datetime, UTC
 from discord.ext import commands
 from discord.ext.commands import Cog
 from helpers.checks import check_if_staff
@@ -31,7 +31,7 @@ class ModTimed(Cog):
             return await ctx.send("I can't ban this user as they're a member of staff.")
 
         expiry_timestamp = self.bot.parse_time(duration)
-        expiry_datetime = datetime.utcfromtimestamp(expiry_timestamp)
+        expiry_datetime = datetime.fromtimestamp(expiry_timestamp, UTC)
         duration_text = self.bot.get_relative_timestamp(
             time_to=expiry_datetime, include_to=True, humanized=True
         )
@@ -99,7 +99,7 @@ class ModTimed(Cog):
             )
 
         expiry_timestamp = self.bot.parse_time(duration)
-        expiry_datetime = datetime.utcfromtimestamp(expiry_timestamp)
+        expiry_datetime = datetime.fromtimestamp(expiry_timestamp, UTC)
         duration_text = self.bot.get_relative_timestamp(
             time_to=expiry_datetime, include_to=True, humanized=True
         )
