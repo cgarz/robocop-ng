@@ -57,7 +57,7 @@ class Lists(Cog):
                 continue
 
             for reaction in message.reactions:
-                users = await reaction.users().flatten()
+                users = [user async for user in reaction.users()]
                 user_ids = map(lambda user: user.id, users)
                 if user_id in user_ids:
                     reactions.append(reaction)
@@ -320,9 +320,7 @@ class Lists(Cog):
         elif self.is_recycle(targeted_reaction):
             messages = [await self.cache_message(targeted_message)]
 
-            for message in await channel.history(
-                limit=None, after=targeted_message, oldest_first=True
-            ).flatten():
+            async for message in channel.history(limit=None, after=targeted_message, oldest_first=True):
                 messages.append(await self.cache_message(message))
 
             await channel.purge(limit=len(messages) + 1, bulk=True)
@@ -339,9 +337,7 @@ class Lists(Cog):
         elif self.is_insert_above(targeted_reaction):
             messages = [await self.cache_message(targeted_message)]
 
-            for message in await channel.history(
-                limit=None, after=targeted_message, oldest_first=True
-            ).flatten():
+            async for message in channel.history(limit=None, after=targeted_message, oldest_first=True):
                 messages.append(await self.cache_message(message))
 
             await channel.purge(limit=len(messages) + 1, bulk=True)
@@ -366,9 +362,7 @@ class Lists(Cog):
 
             messages = []
 
-            for message in await channel.history(
-                limit=None, after=targeted_message, oldest_first=True
-            ).flatten():
+            async for message in channel.history(limit=None, after=targeted_message, oldest_first=True):
                 messages.append(await self.cache_message(message))
 
             await channel.purge(limit=len(messages), bulk=True)
