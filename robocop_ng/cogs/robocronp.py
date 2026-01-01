@@ -141,6 +141,9 @@ class Robocronp(Cog):
     @tasks.loop(hours=1)
     async def hourly(self):
         await self.bot.wait_until_ready()
+        if self.hourly.current_loop == 0:
+            return  # Skip first redundant hourly task. Data already backed up by __init__.py/on_ready()
+
         log_channel = self.bot.get_channel(config.botlog_channel)
         try:
             await self.send_data()
