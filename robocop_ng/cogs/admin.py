@@ -35,6 +35,16 @@ class Admin(Cog):
     @commands.guild_only()
     @commands.check(check_if_bot_manager)
     @commands.command()
+    async def fetchlogdm(self, ctx):
+        """Returns log as a dm"""
+        await ctx.author.send(
+            "Here's the current log file:",
+            file=discord.File(f"{self.bot.script_name}.log"),
+        )
+
+    @commands.guild_only()
+    @commands.check(check_if_bot_manager)
+    @commands.command()
     async def fetchdata(self, ctx):
         """Returns data files"""
         data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
