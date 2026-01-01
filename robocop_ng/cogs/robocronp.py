@@ -7,6 +7,7 @@ from discord.ext.commands import Cog
 from helpers.robocronp import get_crontab, delete_job
 from helpers.restrictions import remove_restriction
 from helpers.checks import check_if_staff
+from hashlib import sha256
 
 
 class Robocronp(Cog):
@@ -22,9 +23,25 @@ class Robocronp(Cog):
         self.daily.cancel()
 
     async def send_data(self):
-        data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
+        new_jsons_hash = sha256(b''.join(open(wj, 'rb').read() for wj in self.bot.wanted_jsons))
+
         log_channel = self.bot.get_channel(config.botlog_channel)
-        await log_channel.send("Hourly data backups:", files=data_files)
+        if new_jsons_hash.digest() != self.bot.wanted_jsons_hash.digest():
+            self.bot.wanted_jsons_hash = new_jsons_hash
+            self.bot.unchanged_json_log_count = 0
+            self.bot.last_json_log_message = None
+            data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
+            await log_channel.send('Hourly data backups:', files=data_files)
+            return
+
+        self.bot.unchanged_json_log_count += 1
+        if self.bot.last_json_log_message is None:
+            self.bot.last_json_log_message = await log_channel.send(
+                content='No change in data files since initial backup.')
+        else:
+            await self.bot.last_json_log_message.edit(
+                content=f'No change in data files for last {self.bot.unchanged_json_log_count} hourly backups.')
+
 
     @commands.guild_only()
     @commands.check(check_if_staff)

@@ -5,6 +5,7 @@ import logging.handlers
 import asyncio
 import aiohttp
 import config
+from hashlib import sha256
 
 import discord
 from discord.ext import commands
@@ -61,6 +62,9 @@ bot.log = log
 bot.config = config
 bot.script_name = script_name
 bot.wanted_jsons = wanted_jsons
+bot.wanted_jsons_hash = sha256(b''.join(open(wj, 'rb').read() for wj in wanted_jsons))
+bot.last_json_log_message = None
+bot.unchanged_json_log_count = 0
 
 
 @bot.event
