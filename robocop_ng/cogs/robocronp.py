@@ -16,6 +16,9 @@ class Robocronp(Cog):
         self.minutely.start()
         self.hourly.start()
         self.daily.start()
+        self.wanted_jsons_hash = sha256(b'')
+        self.last_json_log_message = None
+        self.unchanged_json_log_count = 0
 
     def cog_unload(self):
         self.minutely.cancel()
@@ -26,21 +29,21 @@ class Robocronp(Cog):
         new_jsons_hash = sha256(b''.join(open(wj, 'rb').read() for wj in self.bot.wanted_jsons))
 
         log_channel = self.bot.get_channel(config.botlog_channel)
-        if new_jsons_hash.digest() != self.bot.wanted_jsons_hash.digest():
-            self.bot.wanted_jsons_hash = new_jsons_hash
-            self.bot.unchanged_json_log_count = 0
-            self.bot.last_json_log_message = None
+        if new_jsons_hash.digest() != self.wanted_jsons_hash.digest():
+            self.wanted_jsons_hash = new_jsons_hash
+            self.unchanged_json_log_count = 0
+            self.last_json_log_message = None
             data_files = [discord.File(fpath) for fpath in self.bot.wanted_jsons]
             await log_channel.send('Hourly data backups:', files=data_files)
             return
 
-        self.bot.unchanged_json_log_count += 1
-        if self.bot.last_json_log_message is None:
-            self.bot.last_json_log_message = await log_channel.send(
+        self.unchanged_json_log_count += 1
+        if self.last_json_log_message is None:
+            self.last_json_log_message = await log_channel.send(
                 content='No change in data files since initial backup.')
         else:
-            await self.bot.last_json_log_message.edit(
-                content=f'No change in data files for last {self.bot.unchanged_json_log_count} hourly backups.')
+            await self.last_json_log_message.edit(
+                content=f'No change in data files for last {self.unchanged_json_log_count} hourly backups.')
 
 
     @commands.guild_only()
