@@ -37,6 +37,7 @@ class Admin(Cog):
     @commands.command()
     async def fetchlogdm(self, ctx):
         """Returns log as a dm"""
+        await ctx.message.add_reaction('\N{SQUARED OK}')  # 🆗 (U+1F197)
         await ctx.author.send(
             "Here's the current log file:",
             file=discord.File(f"{self.bot.script_name}.log"),
