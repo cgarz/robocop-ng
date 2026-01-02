@@ -40,7 +40,7 @@ class Robocronp(Cog):
         self.unchanged_json_log_count += 1
         if self.last_json_log_message is None:
             self.last_json_log_message = await log_channel.send(
-                content='No change in data files since initial backup.')
+                content='No change in data files since last backup.')
         else:
             await self.last_json_log_message.edit(
                 content=f'No change in data files for last {self.unchanged_json_log_count} hourly backups.')
