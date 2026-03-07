@@ -101,7 +101,7 @@ class Logs(Cog):
             await member.kick(reason="Too new")
 
             msg = (
-                f":rotating_light: __**`Account too new:`**__  {member.mention} | {escaped_name}\n"
+                f":rotating_light: __**`Account too new:`**__  {member.mention} | `{escaped_name}`\n"
                 f":calendar_spiral: `Account created.:`  {relative_created_at} @ {formatted_created_at}\n"
                 f":clock4: `Account join age:`  {account_age}\n"
                 f":envelope: `Joined with.....:`  {invite_used}\n"
@@ -113,7 +113,7 @@ class Logs(Cog):
             return
 
         msg = (
-            f":white_check_mark: __**`Join............:`**__  {member.mention} | {escaped_name}\n"
+            f":white_check_mark: __**`Join............:`**__  {member.mention} | `{escaped_name}`\n"
             f":calendar_spiral: `Account created.:`   {relative_created_at} @ {formatted_created_at}\n"
             f":clock4: `Account join age:`  {account_age}\n"
             f":envelope: `Joined with.....:`  {invite_used}\n"
@@ -157,7 +157,7 @@ class Logs(Cog):
         alert = False
         cleancont = self.clean_re.sub("", message.content).lower()
         msg = (
-            f':rotating_light: Suspicious message by {message.author.mention} ({message.author.id}/{message.author.name}):\n'
+            f':rotating_light: Suspicious message by {message.author.mention} ({message.author.id}/`{message.author.name}`):\n'
             f'Jump: {message.jump_url}\n'
         )
 
@@ -177,7 +177,7 @@ class Logs(Cog):
         if image_attachments:
             files = [await attachment.to_file(use_cached=True) for attachment in image_attachments]
             content = 'Image ' if len(files) == 1 else f'{len(files)} images '
-            content += (f'from: {message.author.mention} ({message.author.id}/{message.author.name})\n'
+            content += (f'from: {message.author.mention} ({message.author.id}/`{message.author.name}`)\n'
                         f'Posted in: {message.jump_url}')
             await self.image_archive_channel.send(
                 files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
@@ -241,7 +241,7 @@ class Logs(Cog):
 
         msg = (
             ":pencil: **Message edit**: \n"
-            f'From: {after.author.mention} ({after.author.id}/{after.author.name}), in {after.channel.mention}:\n'
+            f'From: {after.author.mention} ({after.author.id}/`{after.author.name}`), in {after.channel.mention}:\n'
             f'Jump: {after.jump_url}\n'
             f"```{before_content}``` \N{RIGHTWARDS ARROW} ```{after_content}```"  # U+2192
         )
@@ -262,7 +262,7 @@ class Logs(Cog):
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
             ":wastebasket: **Message delete**: \n"
-            f'From: {message.author.mention} ({message.author.id}/{message.author.name}), in {message.channel.mention}:\n'
+            f'From: {message.author.mention} ({message.author.id}/`{message.author.name}`), in {message.channel.mention}:\n'
             f'Jump: {message.jump_url}\n'
         )
         msg += f"`{message.system_content}`" if message.type == discord.MessageType.new_member else f"`{message.clean_content}`"
@@ -283,7 +283,7 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.log_channel)
         msg = (
-            f":arrow_left: __**`Leave..:`**__  {member.mention} | {self.bot.escape_message(member)}\n"
+            f":arrow_left: __**`Leave..:`**__  {member.mention} | `{self.bot.escape_message(member)}`\n"
             f":label: `User ID:`  {member.id}"
         )
         await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.light_gray()))
@@ -297,7 +297,7 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f":no_entry: __**`Ban....:`**__ {member.mention} | {self.bot.escape_message(member)}\n"
+            f":no_entry: __**`Ban....:`**__ {member.mention} | `{self.bot.escape_message(member)}`\n"
             f":label: `User ID:` {member.id}"
         )
         await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.red()))
@@ -311,7 +311,7 @@ class Logs(Cog):
 
         log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
-            f":warning: __**`Unban..:`**__  {user.mention} | {self.bot.escape_message(user)}\n"
+            f":warning: __**`Unban..:`**__  {user.mention} | `{self.bot.escape_message(user)}`\n"
             f":label: `User ID:`  {user.id}"
         )
         # if user.id in self.bot.timebans:
