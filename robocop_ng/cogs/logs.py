@@ -26,6 +26,8 @@ class Logs(Cog):
             [r"\W*".join(list(word)) for word in config.suspect_words]
         )
         self.susp_hellgex = re.compile(susp_hellgex, re.IGNORECASE)
+        with open('data/attachment_archive.json') as f:
+            self.attachment_archive_mapping = json.load(f)
 
     @Cog.listener()
     async def on_ready(self):
@@ -174,14 +176,38 @@ class Logs(Cog):
                 msg += f"\n- Contains suspicious word: `{susp_word}`"
                 alert = True
 
-        image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
-        if image_attachments:
-            files = [await attachment.to_file(use_cached=True) for attachment in image_attachments]
-            content = 'Image ' if len(files) == 1 else f'{len(files)} images '
-            content += (f'from: {message.author.mention} ({message.author.id}/`{message.author.name}`)\n'
+        if message.attachments:
+            image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
+            file_attachments = [fa for fa in message.attachments if fa not in image_attachments]
+
+            if image_attachments and file_attachments:
+                content = f'Attachments ({len(image_attachments)}:frame_photo::page_facing_up:{len(file_attachments)})'
+            elif image_attachments:
+                content = 'Image' if len(image_attachments) == 1 else f'{len(image_attachments)} images'
+            else:
+                content = 'File' if len(file_attachments) == 1 else f'{len(file_attachments)} files'
+            content += (f' from: {message.author.mention} ({message.author.id}/`{message.author.name}`)\n'
                         f'Posted in: {message.jump_url}')
             await self.attachment_archive_channel.send(
                 files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
+
+            attachment_files = []
+            for attachment in message.attachments:
+                if attachment.size <= message.guild.filesize_limit:
+                    attachment_files.append(await attachment.to_file())
+                else:
+                    content += ('\nAttachment too large:'
+                                f' {":frame_photo:" if attachment in image_attachments else ":page_facing_up:"}'
+                                f' {attachment.filename} ({attachment.size} > {message.guild.filesize_limit})')
+            if not attachment_files:
+                return
+
+            attachment_archive_msg = await self.attachment_archive_channel.send(
+                files=attachment_files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
+
+            self.attachment_archive_mapping[message.id] = attachment_archive_msg.id
+            with open('data/attachment_archive.json', 'w') as f:
+                json.dump(self.attachment_archive_mapping, f)
 
         if alert:
             msg += f"\n\nJump: <{message.jump_url}>"
@@ -227,9 +253,25 @@ class Logs(Cog):
         if after.channel.id not in config.spy_channels or after.author.bot:
             return
 
-        # If content is the same, just skip over it
-        # This usually means that something embedded.
         if before.clean_content == after.clean_content:
+            if before.id in self.attachment_archive_mapping.keys():
+                msg = (
+                    ":pencil: **Message edit**: \n"
+                    f'From: {after.author.mention} ({after.author.id}/`{after.author.name}`), in {after.channel.mention}:\n'
+                    f'Jump: {after.jump_url}\n'
+                    f'**Removed attachmen{"ts" if len(before.attachments) - len(after.attachments) > 1 else "t"}:**\n'
+                )
+                for attachment in before.attachments:
+                    if attachment in after.attachments:
+                        continue
+                    msg += ':frame_photo:' if attachment.content_type.startswith('image/') else ':page_facing_up:'
+                    msg += f' {attachment.url.rsplit('?', 1)[0]}\n'
+
+                await self.log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
+                if not after.attachments:
+                    del self.attachment_archive_mapping[before.id]
+                    with open('data/attachment_archive.json', 'w') as f:
+                        json.dump(self.attachment_archive_mapping, f)
             return
 
         await self.do_spy(after)
@@ -258,20 +300,32 @@ class Logs(Cog):
         if message.channel.id not in config.spy_channels or message.author.bot:
             return
 
-        msg = (
+        content = (
             ":wastebasket: **Message delete**: \n"
             f'From: {message.author.mention} ({message.author.id}/`{message.author.name}`), in {message.channel.mention}:\n'
             f'Jump: {message.jump_url}\n'
         )
-        msg += f"`{message.system_content}`" if message.type == discord.MessageType.new_member else f"`{message.clean_content}`"
+        content += f"`{message.system_content}`" if message.type == discord.MessageType.new_member else f"`{message.clean_content}`"
+
+        if message.id in self.attachment_archive_mapping.keys() and message.attachments:
+            attachment_archive_msg = await self.attachment_archive_channel.fetch_message(
+                                           self.attachment_archive_mapping[message.id])
+
+            content += f'\n**Attachmen{"ts" if len(attachment_archive_msg.attachments) > 1 else ""}:**\n'
+            for attachment in attachment_archive_msg.attachments:
+                content += ':frame_photo:' if attachment.content_type.startswith('image/') else ':page_facing_up:'
+                content += f'{attachment.url.rsplit('?', 1)[0]}\n'
+
+            del self.attachment_archive_mapping[message.id]
+            with open('data/attachment_archive.json', 'w') as f:
+                json.dump(self.attachment_archive_mapping, f)
 
         # If resulting message is too long, upload to hastebin
-        if len(msg) > 2000:
-            haste_url = await self.bot.haste(msg)
-            msg = f":wastebasket: **Message delete**: \nToo long: <{haste_url}>"
+        if len(content) > 2000:
+            haste_url = await self.bot.haste(content)
+            content = f":wastebasket: **Message delete**: \nToo long: <{haste_url}>"
 
-        await self.log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
-
+        await self.log_channel.send(content, allowed_mentions=discord.AllowedMentions(users=False))
 
     @Cog.listener()
     async def on_member_remove(self, member):

@@ -47,6 +47,7 @@ wanted_jsons = [
     "data/robocronptab.json",
     "data/userlog.json",
     "data/invites.json",
+    "data/attachment_archive.json"
 ]
 
 intents = discord.Intents.all()
