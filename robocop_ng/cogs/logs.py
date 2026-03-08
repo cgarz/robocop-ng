@@ -14,7 +14,8 @@ class Logs(Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.image_archive_channel = None
+        self.attachment_archive_channel = None
+        self.log_channel = None
         self.invite_re = re.compile(
             r"((discord\.gg|discordapp\.com/" r"+invite)/+[a-zA-Z0-9-]+)", re.IGNORECASE
         )
@@ -28,7 +29,8 @@ class Logs(Cog):
 
     @Cog.listener()
     async def on_ready(self):
-        self.image_archive_channel = self.bot.get_channel(config.image_archive_channel)
+        self.attachment_archive_channel = self.bot.get_channel(config.attachment_archive_channel)
+        self.log_channel = self.bot.get_channel(config.log_channel)
 
     @Cog.listener()
     async def on_member_join(self, member):
@@ -37,7 +39,6 @@ class Logs(Cog):
         if member.guild.id not in config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
         # We use this a lot, might as well get it once
         escaped_name = self.bot.escape_message(member)
 
@@ -109,7 +110,7 @@ class Logs(Cog):
             )
             if not sent:
                 msg += "\n\n:warn: The user has disabled direct messages, so the reason was not sent."
-            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
+            await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
             return
 
         msg = (
@@ -131,7 +132,7 @@ class Logs(Cog):
             warns = json.load(f)
         try:
             if len(warns[str(member.id)]["warns"]) == 0:
-                await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
+                await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
             else:
                 embed = discord.Embed(
                     color=discord.Color.dark_red(), title=f"Warns for {escaped_name}"
@@ -143,9 +144,9 @@ class Logs(Cog):
                         value=f"Issuer: {warn['issuer_name']}"
                         f"\nReason: {warn['reason']}",
                     )
-                await log_channel.send(msg, embed=embed)
+                await self.log_channel.send(msg, embed=embed)
         except KeyError:  # if the user is not in the file
-            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
+            await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.green()))
 
     async def do_spy(self, message):
         if message.author.bot:
@@ -179,7 +180,7 @@ class Logs(Cog):
             content = 'Image ' if len(files) == 1 else f'{len(files)} images '
             content += (f'from: {message.author.mention} ({message.author.id}/`{message.author.name}`)\n'
                         f'Posted in: {message.jump_url}')
-            await self.image_archive_channel.send(
+            await self.attachment_archive_channel.send(
                 files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
 
         if alert:
@@ -237,8 +238,6 @@ class Logs(Cog):
         before_content = before.clean_content.replace("`", "`\u200d")
         after_content = after.clean_content.replace("`", "`\u200d")
 
-        log_channel = self.bot.get_channel(config.log_channel)
-
         msg = (
             ":pencil: **Message edit**: \n"
             f'From: {after.author.mention} ({after.author.id}/`{after.author.name}`), in {after.channel.mention}:\n'
@@ -251,7 +250,7 @@ class Logs(Cog):
             haste_url = await self.bot.haste(msg)
             msg = f":pencil: **Message edit**: \nToo long: <{haste_url}>"
 
-        await log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
+        await self.log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
 
     @Cog.listener()
     async def on_message_delete(self, message):
@@ -259,7 +258,6 @@ class Logs(Cog):
         if message.channel.id not in config.spy_channels or message.author.bot:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
         msg = (
             ":wastebasket: **Message delete**: \n"
             f'From: {message.author.mention} ({message.author.id}/`{message.author.name}`), in {message.channel.mention}:\n'
@@ -272,7 +270,8 @@ class Logs(Cog):
             haste_url = await self.bot.haste(msg)
             msg = f":wastebasket: **Message delete**: \nToo long: <{haste_url}>"
 
-        await log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
+        await self.log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
+
 
     @Cog.listener()
     async def on_member_remove(self, member):
@@ -281,12 +280,11 @@ class Logs(Cog):
         if member.guild.id not in config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.log_channel)
         msg = (
             f":arrow_left: __**`Leave..:`**__  {member.mention} | `{self.bot.escape_message(member)}`\n"
             f":label: `User ID:`  {member.id}"
         )
-        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.light_gray()))
+        await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.light_gray()))
 
     @Cog.listener()
     async def on_member_ban(self, guild, member):
@@ -295,12 +293,11 @@ class Logs(Cog):
         if guild.id not in config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
             f":no_entry: __**`Ban....:`**__ {member.mention} | `{self.bot.escape_message(member)}`\n"
             f":label: `User ID:` {member.id}"
         )
-        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.red()))
+        await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.red()))
 
     @Cog.listener()
     async def on_member_unban(self, guild, user):
@@ -309,7 +306,6 @@ class Logs(Cog):
         if guild.id not in config.guild_whitelist:
             return
 
-        log_channel = self.bot.get_channel(config.modlog_channel)
         msg = (
             f":warning: __**`Unban..:`**__  {user.mention} | `{self.bot.escape_message(user)}`\n"
             f":label: `User ID:`  {user.id}"
@@ -323,7 +319,7 @@ class Logs(Cog):
         #         timebans.pop(user.id)
         #         with open("data/timebans.json", "w") as f:
         #             json.dump(timebans, f)
-        await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.yellow()))
+        await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.yellow()))
 
     @Cog.listener()
     async def on_member_update(self, member_before, member_after):
@@ -333,7 +329,6 @@ class Logs(Cog):
             return
 
         msg_parts_lines = []
-        log_channel = self.bot.get_channel(config.log_channel)
         if member_before.roles != member_after.roles:
             # role removal
             role_removal = []
@@ -389,7 +384,7 @@ class Logs(Cog):
                 f'{heading_prefix}{heading_text:.<{heading_text_min_width}}{heading_suffix}{data}'
                 for heading_prefix, heading_text, heading_suffix, data in msg_parts_lines
             )
-            await log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.blue()))
+            await self.log_channel.send(embed=discord.Embed(description=msg, color=discord.Color.blue()))
 
 
 async def setup(bot):
