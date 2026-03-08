@@ -246,6 +246,21 @@ class Logs(Cog):
         await self.do_spy(message)
 
     @Cog.listener()
+    async def on_raw_message_edit(self, message):
+        if message.cached_message:
+            return
+
+        await self.bot.wait_until_ready()
+        if message.channel_id not in config.spy_channels:
+            return
+
+        await self.log_channel.send(
+            f':pencil::bangbang: **Uncached Message edit**:\n'
+            f'Jump: https://discord.com/channels/{config.guild_whitelist[0]}/{message.channel_id}/{message.message_id}'
+        )
+
+
+    @Cog.listener()
     async def on_message_edit(self, before, after):
         await self.bot.wait_until_ready()
         if after.channel.id not in config.spy_channels or after.author.bot:
@@ -291,6 +306,21 @@ class Logs(Cog):
             msg = f":pencil: **Message edit**: \nToo long: <{haste_url}>"
 
         await self.log_channel.send(msg, allowed_mentions=discord.AllowedMentions(users=False))
+
+    @Cog.listener()
+    async def on_raw_message_delete(self, message):
+        if message.cached_message:
+            return
+
+        await self.bot.wait_until_ready()
+        if message.channel_id not in config.spy_channels:
+            return
+
+        await self.log_channel.send(
+            f':wastebasket::bangbang: **Uncached Message delete**:\n'
+            f'Jump: https://discord.com/channels/{config.guild_whitelist[0]}/{message.channel_id}/{message.message_id}'
+        )
+
 
     @Cog.listener()
     async def on_message_delete(self, message):

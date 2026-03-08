@@ -54,7 +54,7 @@ intents = discord.Intents.all()
 intents.typing = False
 
 bot = commands.Bot(
-    command_prefix=get_prefix, description=config.bot_description, intents=intents
+    command_prefix=get_prefix, description=config.bot_description, intents=intents, max_messages=5000
 )
 bot.help_command = commands.DefaultHelpCommand(dm_help=True)
 
@@ -76,19 +76,24 @@ async def on_ready():
         f"{bot.user.id}\ndpy version: {discord.__version__}\n"
     )
     game_name = f"{config.prefixes[0]}help"
-
-    # Send "Robocop has started! x has y members!"
     guild = bot.botlog_channel.guild
+
+    # Precache msgs from all spy channels to ensure on_message_delete etc works immediately for at least recent msgs.
+    # Apparently considered super secret arcane knowledge that you aren't supposed to know, says the dpy discord server.
+    log.info('Precaching messages, may take a bit...')
+    for channel in config.spy_channels:
+        async for message in guild.get_channel(channel).history(limit=500):
+            bot._connection._messages.append(message)
+    log.info(f'{len(bot.cached_messages)} messages precached.')
+
     msg = (
         f"{bot.user.name} has started! "
         f"{guild.name} has {guild.member_count} members!"
     )
-
     data_files = [discord.File(fpath) for fpath in wanted_jsons]
     await bot.botlog_channel.send(msg, files=data_files)
 
     activity = discord.Activity(name=game_name, type=discord.ActivityType.listening)
-
     await bot.change_presence(activity=activity)
 
 
