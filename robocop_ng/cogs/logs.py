@@ -27,7 +27,7 @@ class Logs(Cog):
         )
         self.susp_hellgex = re.compile(susp_hellgex, re.IGNORECASE)
         with open('data/attachment_archive.json') as f:
-            self.attachment_archive_mapping = json.load(f)
+            self.attachment_archive_mapping = {int(k):v for k,v in json.load(f).items()}
 
     @Cog.listener()
     async def on_ready(self):
