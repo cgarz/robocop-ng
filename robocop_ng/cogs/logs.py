@@ -188,8 +188,6 @@ class Logs(Cog):
                 content = 'File' if len(file_attachments) == 1 else f'{len(file_attachments)} files'
             content += (f' from: {message.author.mention} ({message.author.id}/`{message.author.name}`)\n'
                         f'Posted in: {message.jump_url}')
-            await self.attachment_archive_channel.send(
-                files=files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
 
             attachment_files = []
             for attachment in message.attachments:
