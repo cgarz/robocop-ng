@@ -30,6 +30,9 @@ log_format = logging.Formatter(
 file_handler.setFormatter(log_format)
 stdout_handler.setFormatter(log_format)
 
+gwlog = logging.getLogger('discord.gateway')
+gwlog.setLevel(logging.WARNING)
+
 log = logging.getLogger("discord")
 log.setLevel(logging.INFO)
 log.addHandler(file_handler)
@@ -99,14 +102,9 @@ async def on_ready():
 
 @bot.event
 async def on_command(ctx):
-    log_text = (
-        f"{ctx.message.author} ({ctx.message.author.id}): " f'"{ctx.message.content}" '
-    )
-    if ctx.guild:  # was too long for tertiary if
-        log_text += (
-            f'on "{ctx.channel.name}" ({ctx.channel.id}) '
-            f'at "{ctx.guild.name}" ({ctx.guild.id})'
-        )
+    log_text = f'{ctx.message.author} ({ctx.message.author.id}): "{ctx.message.content}" '
+    if ctx.guild:
+        log_text += f'on "{ctx.channel.name}" ({ctx.channel.id}) at "{ctx.guild.name}" ({ctx.guild.id})'
     else:
         log_text += f"on DMs ({ctx.channel.id})"
     log.info(log_text)

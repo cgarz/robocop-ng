@@ -459,7 +459,7 @@ class Logs(Cog):
 
         if msg_parts_lines:
             msg_parts_lines.insert(0, (":information_source: __**`",   "Member update",   ":`**__ ",
-                                    f"{member_after.mention} | {self.bot.escape_message(member_after)}"))
+                                    f"{member_after.mention} | `{self.bot.escape_message(member_after)}`"))
             heading_text_min_width = max(len(heading_text) for _, heading_text, _, _ in msg_parts_lines)
 
             msg = '\n'.join(
