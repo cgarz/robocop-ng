@@ -3,7 +3,7 @@ import datetime
 import re
 
 # Basic bot config, insert your token here, update description if you want
-prefixes = [".", "!"]
+prefixes = ["!"]
 
 with open('BOT_TOKEN.txt') as f:
     token = f.read().strip()
