@@ -45,6 +45,33 @@ class Admin(Cog):
 
     @commands.guild_only()
     @commands.check(check_if_bot_manager)
+    @commands.command(aliases=['sync-commands'])
+    async def sync_commands(self, ctx):
+        msgs = []
+        for guild in self.bot.guilds:
+            self.bot.tree.copy_global_to(guild=guild)
+            added = len(await self.bot.tree.sync(guild=guild))
+            msgs.append(f'Synced {added} comman{"d" if added == 1 else "ds"} to {guild.id}/{guild.name}')
+        await ctx.send('\n'.join(msgs))
+
+    @commands.guild_only()
+    @commands.check(check_if_bot_manager)
+    @commands.command(aliases=['clear-commands'])
+    async def clear_commands(self, ctx):
+        msgs = []
+        for guild in self.bot.guilds:
+            self.bot.tree.clear_commands(guild=guild, type=None)
+            await self.bot.tree.sync(guild=guild)
+            msgs.append(f'Deleted commands from {guild.id}/{guild.name}')
+            continue
+
+        self.bot.tree.clear_commands(guild=None, type=None)
+        await self.bot.tree.sync(guild=None)
+        msgs.append(f'Deleted global commands')
+        await ctx.send('\n'.join(msgs))
+
+    @commands.guild_only()
+    @commands.check(check_if_bot_manager)
     @commands.command()
     async def fetchdata(self, ctx):
         """Returns data files"""

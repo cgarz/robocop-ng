@@ -40,7 +40,8 @@ initial_cogs = [
     "cogs.nkitmeme",
     "cogs.invites",
     "cogs.keys_request_block",
-    "cogs.crypto_scam_block"
+    "cogs.crypto_scam_block",
+    "cogs.freemoji"
 ]
 
 # The following cogs are also available but aren't loaded by default:
