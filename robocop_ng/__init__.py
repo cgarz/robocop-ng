@@ -112,7 +112,12 @@ async def on_command(ctx):
 
 @bot.event
 async def on_error(event_method, *args, **kwargs):
-    log.error(f"Error on {event_method}: {sys.exc_info()}")
+    # Expanded to try and find source of mysterious Error on_message / TypeError('NoneType' object is not iterable)
+    log.error((
+        f"Error on {event_method}: {sys.exc_info()}\n"
+        f"    {args=}\n"
+        f"    {kwargs=}"
+    ))
 
 
 @bot.event
