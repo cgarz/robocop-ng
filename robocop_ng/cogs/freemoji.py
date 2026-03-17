@@ -57,6 +57,9 @@ class Freemoji(Cog):
 
     @app_commands.guild_only()
     @app_commands.command(description='React with specified emoji to last message or target message.')
+    @app_commands.describe(
+        emoji='The emoji to react with. Either a proper emoji or just the name of one in the server.',
+        target='Target message via: 1-10 [default=1] / channel_id-message_id / message_id / jump_url / @mention')
     async def react(self, interaction, emoji: str, target: str = '1'):
         await interaction.response.defer(thinking=True, ephemeral=True)
         target = target.strip()
