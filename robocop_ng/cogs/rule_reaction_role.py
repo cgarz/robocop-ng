@@ -37,6 +37,7 @@ class RuleReactionRole(Cog):
 
         for member in ctx.message.mentions:
             await member.remove_roles(self.enroll_reaction_role)
+        await ctx.message.add_reaction('\N{SQUARED OK}')  # 🆗 (U+1F197)
 
 
 async def setup(bot):
