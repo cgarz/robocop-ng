@@ -176,7 +176,7 @@ class Logs(Cog):
                 msg += f"\n- Contains suspicious word: `{susp_word}`"
                 alert = True
 
-        if message.attachments:
+        if message.attachments and message.id not in self.attachment_archive_mapping:
             image_attachments = [ia for ia in message.attachments if ia.content_type.startswith('image/')]
             file_attachments = [fa for fa in message.attachments if fa not in image_attachments]
 
