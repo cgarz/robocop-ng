@@ -197,15 +197,14 @@ class Logs(Cog):
                     content += ('\nAttachment too large:'
                                 f' {":frame_photo:" if attachment in image_attachments else ":page_facing_up:"}'
                                 f' {attachment.filename} ({attachment.size} > {message.guild.filesize_limit})')
-            if not attachment_files:
-                return
 
-            attachment_archive_msg = await self.attachment_archive_channel.send(
-                files=attachment_files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
+            if attachment_files:
+                attachment_archive_msg = await self.attachment_archive_channel.send(
+                    files=attachment_files, content=content, allowed_mentions=discord.AllowedMentions(users=False))
 
-            self.attachment_archive_mapping[message.id] = attachment_archive_msg.id
-            with open('data/attachment_archive.json', 'w') as f:
-                json.dump(self.attachment_archive_mapping, f)
+                self.attachment_archive_mapping[message.id] = attachment_archive_msg.id
+                with open('data/attachment_archive.json', 'w') as f:
+                    json.dump(self.attachment_archive_mapping, f)
 
         if alert:
             msg += f"\n\nJump: <{message.jump_url}>"
