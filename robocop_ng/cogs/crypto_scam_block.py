@@ -51,6 +51,14 @@ class CryptoScamBlock(Cog):
         if not message.content:
             msg_has_no_content = True
         else:
+            if image_count == 4:
+                # Handle the fannies now adding text. But only handle single 4 attachment msgs, no url/cache processing.
+                await asyncio.sleep(8)  # give log cog enough time to archive 4 images
+                await self.log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
+                await message.delete()
+                return
+
+
             stripped_content = self.replace_restricted_mentions_re.sub(repl='', string=message.content)
             url_count = 0
             for url in self.url_extract_re.findall(message.content):
