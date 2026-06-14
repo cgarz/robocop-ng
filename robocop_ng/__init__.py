@@ -112,7 +112,7 @@ async def on_command(ctx):
 @bot.event
 async def on_interaction(interaction):
     log_text = f'{interaction.user.name} ({interaction.user.id}): [/{interaction.command.name} '
-    log_text += ', '.join(f'{k}="{v}"' for k,v in vars(interaction.namespace).items())
+    log_text += ', '.join(f'{k}="{v}"' for k,v in interaction.data.items())
     log_text += f'] on "{interaction.channel.name}" ({interaction.channel.id})'
     log_text += f' at "{interaction.guild.name}" ({interaction.guild.id})'
     log.info(log_text)

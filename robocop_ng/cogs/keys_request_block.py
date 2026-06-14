@@ -26,7 +26,7 @@ class KeysRequestBlock(Cog):
         match1 = config.keys_block_re1.findall(message.content)
         match2 = config.keys_block_re2.findall(message.content)
         if match1 and match2:
-            await message.reply(config.keys_request_message)
+            await message.reply(config.keys_block_message)
 
 async def setup(bot):
     await bot.add_cog(KeysRequestBlock(bot))
