@@ -1,38 +1,37 @@
 import asyncio
-import re
 from discord.ext.commands import Cog
-from discord.utils import remove_markdown
+from datetime import datetime, timezone, timedelta
 import config
 from helpers.checks import check_if_staff
 
 class CryptoScamBlock(Cog):
     """
-    Handles image spam from crypto fannies. Matches when msg has exactly 4 images/links and no visible text content.
-    Also counts multiple messages together if posted in quick succession.
-    Everyone and here mentions are also not counted as visible text.
+    Handles image spam from crypto fannies. Triggers if a user posts an image in TRIGGER_AMOUNT or more spy channels
+    within CLEAR_AFTER_SEC seconds. Unacks them and deletes previous PURGE_MINUTES minutes worth of their messages from
+    all spy channels.
     """
 
     def __init__(self, bot):
-        self.url_extract_re = re.compile(r'((\[[^]]*]\()?https?://\S+\.\S+/\S+)\)?', re.IGNORECASE)
-        self.replace_restricted_mentions_re = re.compile(r'@(everyone|here)', re.IGNORECASE)
         self.bot = bot
-        self.recent_message_cache = {}  # {user.id: {channel.id: [(image_count, message)]} } (list is actually a set)
         self.log_channel = None
-        self.MESSAGE_CACHE_TIMEOUT = 8.0
+        self.enroll_reaction_role = None
+        self.spy_channels = []
+        self.recent_image_count = {}  # {user.id: image_count}
+        self.TRIGGER_AMOUNT = 2
+        self.CLEAR_AFTER_SEC = 90
+        self.PURGE_MINUTES = 5
 
-    async def add_to_cache_with_timeout(self, image_link_count, message):
-        if message.author.id not in self.recent_message_cache:
-            self.recent_message_cache[message.author.id] = {}
-        if message.channel.id not in self.recent_message_cache[message.author.id]:
-            self.recent_message_cache[message.author.id][message.channel.id] = set()
-
-        self.recent_message_cache[message.author.id][message.channel.id].add((image_link_count, message))
-        await asyncio.sleep(self.MESSAGE_CACHE_TIMEOUT)
-        self.recent_message_cache[message.author.id][message.channel.id].discard((image_link_count, message))
+    async def increment_with_timeout(self, user):
+        self.recent_image_count[user.id] = self.recent_image_count.get(user.id, 0) +1
+        await asyncio.sleep(self.CLEAR_AFTER_SEC)
+        self.recent_image_count[user.id] -= 1
 
     @Cog.listener()
     async def on_ready(self):
         self.log_channel = self.bot.get_channel(config.log_channel)
+        guild = self.bot.get_guild(config.guild_whitelist[0])
+        self.enroll_reaction_role = guild.get_role(config.enroll_reaction_role_id)
+        self.spy_channels = [c for c in guild.channels if c.id in config.spy_channels]
 
     @Cog.listener()
     async def on_message(self, message):
@@ -45,53 +44,23 @@ class CryptoScamBlock(Cog):
         if check_if_staff(message):
             return  # ignore staff
 
-        msg_has_no_content = False
-        image_count = sum(1 for a in message.attachments if a.content_type.startswith('image/'))
-
-        if not message.content:
-            msg_has_no_content = True
-        else:
-            if image_count == 4:
-                # Handle the fannies now adding text. But only handle single 4 attachment msgs, no url/cache processing.
-                await asyncio.sleep(8)  # give log cog enough time to archive 4 images
-                await self.log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
-                await message.delete()
-                return
-
-
-            stripped_content = self.replace_restricted_mentions_re.sub(repl='', string=message.content)
-            url_count = 0
-            for url in self.url_extract_re.findall(message.content):
-                if isinstance(url, tuple):
-                    url = url[0]
-                stripped_content = stripped_content.replace(url, '')
-                url_count += 1
-
-            stripped_content = remove_markdown(stripped_content)
-            stripped_content = ''.join(c for c in stripped_content if c.isprintable()).strip()
-            if not stripped_content:
-                image_count += url_count # Assumes link is an image, checking everything would be too slow/expensive.
-                msg_has_no_content = True
-
-        if msg_has_no_content:
-            asyncio.create_task(self.add_to_cache_with_timeout(image_count, message))
+        if any(a.content_type.startswith(('image/', 'video/')) for a in message.attachments):
+            asyncio.create_task(self.increment_with_timeout(message.author))
             await asyncio.sleep(0)
-
-        message_cache = self.recent_message_cache.copy()
-        if message_cache_user := message_cache.get(message.author.id):
-            message_cache_messages = [(c,m) for c,m in message_cache_user.get(message.channel.id)]
         else:
-            message_cache_messages = []
+            await asyncio.sleep(2)  # give douchecord enough time to convert a bare image link into an image embed
+            if any(e.type in ('image', 'video', 'gifv') for e in message.embeds):
+                asyncio.create_task(self.increment_with_timeout(message.author))
+                await asyncio.sleep(0)
 
-        if message_cache_messages:
-            image_count = sum(c for c,m in message_cache_messages)
-
-        if image_count == 4:
-            if message.attachments:
-                await asyncio.sleep(8)  # give log cog enough time to archive 4 images
+        if self.recent_image_count.get(message.author.id, 0) >= self.TRIGGER_AMOUNT:
+            await message.author.remove_roles(self.enroll_reaction_role)
             await self.log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
-            for _, message in message_cache_messages:
-                await message.delete()
+            delete_after = datetime.now(tz=timezone.utc) - timedelta(minutes=self.PURGE_MINUTES)
+            for channel in self.spy_channels:
+                async for scam_message in channel.history(after=delete_after):
+                    if scam_message.author == message.author:
+                        await scam_message.delete()
 
 
 async def setup(bot):
