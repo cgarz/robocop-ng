@@ -6,9 +6,9 @@ from helpers.checks import check_if_staff
 
 class CryptoScamBlock(Cog):
     """
-    Handles image spam from crypto fannies. Triggers if a user posts an image in TRIGGER_AMOUNT or more spy channels
-    within CLEAR_AFTER_SEC seconds. Unacks them and deletes previous PURGE_MINUTES minutes worth of their messages from
-    all spy channels.
+    Handles image spam from crypto fannies. Triggers if a user posts TRIGGER AMOUNT images in TRIGGER_AMOUNT or more
+    spy channels within CLEAR_AFTER_SEC seconds. Unacks them and deletes previous PURGE_MINUTES minutes worth of their
+    messages from all spy channels.
     """
 
     def __init__(self, bot):
@@ -16,15 +16,22 @@ class CryptoScamBlock(Cog):
         self.log_channel = None
         self.enroll_reaction_role = None
         self.spy_channels = []
-        self.recent_image_count = {}  # {user.id: image_count}
+        self.recent_image_data = {}  # {user.id: (image_count, set(channel_ids))}
         self.TRIGGER_AMOUNT = 2
         self.CLEAR_AFTER_SEC = 90
-        self.PURGE_MINUTES = 5
+        self.PURGE_MINUTES = 3
 
-    async def increment_with_timeout(self, user):
-        self.recent_image_count[user.id] = self.recent_image_count.get(user.id, 0) +1
+    async def increment_with_timeout(self, user_id, channel_id):
+        image_count, channel_ids = self.recent_image_data.get(user_id, (0, set()))
+        image_count += 1
+        channel_ids.add(channel_id)
+        self.recent_image_data[user_id] = image_count, channel_ids
+
         await asyncio.sleep(self.CLEAR_AFTER_SEC)
-        self.recent_image_count[user.id] -= 1
+        image_count, channel_ids = self.recent_image_data[user_id]
+        image_count -= 1
+        channel_ids.discard(channel_id)
+        self.recent_image_data[user_id] = image_count, channel_ids
 
     @Cog.listener()
     async def on_ready(self):
@@ -45,15 +52,16 @@ class CryptoScamBlock(Cog):
             return  # ignore staff
 
         if any(a.content_type.startswith(('image/', 'video/')) for a in message.attachments):
-            asyncio.create_task(self.increment_with_timeout(message.author))
+            asyncio.create_task(self.increment_with_timeout(message.author.id, message.channel.id))
             await asyncio.sleep(0)
         else:
             await asyncio.sleep(2)  # give douchecord enough time to convert a bare image link into an image embed
             if any(e.type in ('image', 'video', 'gifv') for e in message.embeds):
-                asyncio.create_task(self.increment_with_timeout(message.author))
+                asyncio.create_task(self.increment_with_timeout(message.author.id, message.channel.id))
                 await asyncio.sleep(0)
 
-        if self.recent_image_count.get(message.author.id, 0) >= self.TRIGGER_AMOUNT:
+        image_count, channel_ids = self.recent_image_data.get(message.author.id, (0,set()))
+        if image_count >= self.TRIGGER_AMOUNT and len(channel_ids) >= self.TRIGGER_AMOUNT:
             await message.author.remove_roles(self.enroll_reaction_role)
             await self.log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
             delete_after = datetime.now(tz=timezone.utc) - timedelta(minutes=self.PURGE_MINUTES)
