@@ -338,7 +338,7 @@ class Logs(Cog):
             attachment_archive_msg = await self.attachment_archive_channel.fetch_message(
                                            self.attachment_archive_mapping[message.id])
 
-            content += f'\n**Attachmen{"ts" if len(attachment_archive_msg.attachments) > 1 else ""}:**\n'
+            content += f'\n**Attachmen{"ts" if len(attachment_archive_msg.attachments) > 1 else "t"}:**\n'
             for attachment in attachment_archive_msg.attachments:
                 content += ':frame_photo:' if attachment.content_type.startswith('image/') else ':page_facing_up:'
                 content += f'{attachment.url.rsplit('?', 1)[0]}\n'
