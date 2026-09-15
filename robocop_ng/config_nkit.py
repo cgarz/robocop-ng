@@ -95,16 +95,12 @@ attachment_archive_channel = 1441174621792632935
 # These channel entries are used to determine which roles will be given
 # access when we unmute on them
 general_channels = [
-    1002352198828707870, # announcements
-    981122068718448671,  # releases
-    1300299915750150144, # rules-and-faqs
-    981115906115633173,  # general
-    963143757937651753,  # bug-reports
-    963144218514178108,  # support
-    963144311237668945,  # feature-requests
-    1021728700363972628, # ui-feedback
-    1044754539041001532, # scan-tool
-    welcome_channel
+    1542626191192883250, # general
+    1542626393639100476, # support
+    1542626619515080784, # bug-reports
+    1542626700544704512, # feature-requests
+    1542626892811862158, # ui-feedback
+    1542628183722033162, # nkds
 ]  # Channels everyone can access
 
 #Community Channels: Disabled
