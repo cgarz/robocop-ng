@@ -53,8 +53,10 @@ wanted_jsons = [
     "data/attachment_archive.json"
 ]
 
-intents = discord.Intents.all()
-intents.typing = False
+intents = discord.Intents.default()
+intents.message_content = True  # Allows the bot to read message text
+intents.members = True          # Allows the bot to track server member events
+intents.typing = False          # Disable noisy typing events
 
 bot = commands.Bot(
     command_prefix=get_prefix, description=config.bot_description, intents=intents, max_messages=5000

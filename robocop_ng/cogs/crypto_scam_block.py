@@ -62,8 +62,8 @@ class CryptoScamBlock(Cog):
 
         image_count, channel_ids = self.recent_image_data.get(message.author.id, (0,set()))
         if image_count >= self.TRIGGER_AMOUNT and len(channel_ids) >= self.TRIGGER_AMOUNT:
-            await message.author.remove_roles(self.enroll_reaction_role)
             await self.log_channel.send('🚨 **Crypto scam fanny**')  # log cog does the rest
+            await message.author.remove_roles(self.enroll_reaction_role)
             delete_after = datetime.now(tz=timezone.utc) - timedelta(minutes=self.PURGE_MINUTES)
             for channel in self.spy_channels:
                 async for scam_message in channel.history(after=delete_after):
